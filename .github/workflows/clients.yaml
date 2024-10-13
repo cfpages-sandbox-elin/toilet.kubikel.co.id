@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.26
+name: Update Multiple Clients v.8.27
 
 on:
   push:
@@ -215,12 +215,14 @@ jobs:
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
                   if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
+                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
                     if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
                     print arr[1]
                     exit
                   }
                 }
               }' "$file")
+
               # Fallback logic for wa url & phone url
               if [ -z "$OLD_WAURL" ]; then
                 OLD_WAURL=$(awk '
@@ -234,13 +236,18 @@ jobs:
 
               if [ -z "$OLD_PHURL" ]; then
                 OLD_PHURL=$(awk '
-                  /((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[0-9]+))/ {
+                  /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]+))"/ {
                     if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
-                    if ($0 ~ /^tel:/) {
-                      match($0, /(tel:[^"]+)/, arr)
-                    } else {
-                      match($0, /(https:\/\/[^"]+)/, arr)
-                    }
+                    match($0, /href="([^"]+)"/, arr)
+                    print arr[1]
+                    exit
+                  }' "$file")
+              fi
+              # If still empty, try to find tel: links anywhere in the file
+              if [ -z "$OLD_PHURL" ]; then
+                OLD_PHURL=$(awk '
+                  /href="tel:[^"]+"/ {
+                    match($0, /href="(tel:[^"]+)"/, arr)
                     print arr[1]
                     exit
                   }' "$file")
