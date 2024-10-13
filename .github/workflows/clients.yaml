@@ -232,7 +232,7 @@ jobs:
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
                   if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
-                    if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
+                    if ($0 !~ /💬/) { next } {  # Skip if contains WhatsApp emoji
                     print arr[1]
                     exit
                   }
