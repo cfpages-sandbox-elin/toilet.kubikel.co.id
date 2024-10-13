@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.28
+name: Update Multiple Clients v.8.29
 
 on:
   push:
@@ -221,7 +221,7 @@ jobs:
                     exit
                   }' "$file")
               fi
-
+              # Extracting phone url
               OLD_PHURL=$(awk '
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
@@ -243,11 +243,17 @@ jobs:
               }
               # Last resort: find any tel: links
               /href="tel:[^"]+"/ {
-                match($0, /href="(tel:[^"]+)"/, arr)
+                match($0, /href="([^"]+)"/, arr)
                 print arr[1]
                 exit
               }
               ' "$file")
+
+              if [ -z "$OLD_PHURL" ]; then
+                echo "Error: Unable to extract phone URL from $file"
+                echo "File content:"
+                cat "$file"
+              fi
 
               if [ -z "$OLD_PHONE_NAME" ] || [ -z "$OLD_WAURL" ] || [ -z "$OLD_PHURL" ]; then
                 echo "Error: Unable to extract one or more of the following from $file:"
