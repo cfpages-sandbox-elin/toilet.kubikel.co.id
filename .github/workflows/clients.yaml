@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.32
+name: Update Multiple Clients v.8.33
 
 on:
   push:
@@ -231,29 +231,30 @@ jobs:
               OLD_PHURL=$(awk '
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
-                  if (match($0, /href="(https?:\/\/[^"]+)"/, arr)) {
+                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
                     if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
+                    print arr[1]
+                    exit
+                  }
+                }
+              }' "$file")
+              # Fallback logic for ph url
+              if [ -z "$OLD_PHURL" ]; then
+                OLD_PHURL=$(awk '
+                  /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]*[+]?[^"]+))"/ {
+                    if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
+                      match($0, /(https?:\/\/[^"]+|tel:[^"]+)/, arr)
                       print arr[1]
                       exit
                     }
                   }
-                }
-              }
-              # Fallback for phone url
-              /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]*[+]?[^"]+))"/ {
-                if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
-                  match($0, /(https?:\/\/[^"]+)/, arr)
-                  print arr[1]
-                  exit
-                }
-              }
-              # Last resort: find any tel: links
-              /href="tel:[^"]*[+]?[^"]+"/ {
-                match($0, /href="([^"]+)"/, arr)
-                print arr[1]
-                exit
-              }
-              ' "$file")
+                  # Last resort: find any tel: links
+                  /href="tel:[^"]*[+]?[^"]+"/ {
+                    match($0, /href="([^"]+)"/, arr)
+                    print arr[1]
+                    exit
+                  }' "$file")
+              fi
               echo "  Old Phone URL: $OLD_PHURL"
 
               if [ -z "$OLD_PHONE_NAME" ] || [ -z "$OLD_WAURL" ] || [ -z "$OLD_PHURL" ]; then
