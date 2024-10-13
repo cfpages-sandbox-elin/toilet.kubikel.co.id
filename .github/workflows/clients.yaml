@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.29
+name: Update Multiple Clients v.8.30
 
 on:
   push:
@@ -186,6 +186,7 @@ jobs:
               if [ -z "$OLD_PHONE_NAME" ]; then
                 OLD_PHONE_NAME=$(awk -F'[<>]' '/<span[^>]*>[0-9]{4} [0-9]{4} [0-9]{4}.*\([^)]+\)/ {match($0, /[0-9]{4} [0-9]{4} [0-9]{4}.*\([^)]+\)/, arr); print arr[0]; exit}' "$file")
               fi
+              echo "  Old Phone Name: $OLD_PHONE_NAME"
 
               # Initialize OLD_PHONE and OLD_NAME
               OLD_PHONE=""
@@ -201,6 +202,9 @@ jobs:
               else
                 echo "Warning: OLD_PHONE_NAME is empty"
               fi
+              echo "  Old Phone: $OLD_PHONE"
+              echo "  Old Name: $OLD_NAME"
+              
               OLD_WAURL=$(awk '
               /<div[^>]*class="[^"]*(whatsapp-floating|sms-floating)[^"]*"/ {
                 while (getline && !/<\/div>/) {
@@ -221,6 +225,8 @@ jobs:
                     exit
                   }' "$file")
               fi
+              echo "  Old WA/SMS URL: $OLD_WAURL"
+
               # Extracting phone url
               OLD_PHURL=$(awk '
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
@@ -248,6 +254,7 @@ jobs:
                 exit
               }
               ' "$file")
+              echo "  Old Phone URL: $OLD_PHURL"
 
               if [ -z "$OLD_PHONE_NAME" ] || [ -z "$OLD_WAURL" ] || [ -z "$OLD_PHURL" ]; then
                 echo "Error: Unable to extract one or more of the following from $file:"
@@ -258,13 +265,6 @@ jobs:
                 echo "Skipping operation for this file and moving to the next."
                 continue
               fi
-
-              echo "Current values in $file:"
-              echo "  Old Phone Name: $OLD_PHONE_NAME"
-              echo "  Old Phone: $OLD_PHONE"
-              echo "  Old Name: $OLD_NAME"
-              echo "  Old WA/SMS URL: $OLD_WAURL"
-              echo "  Old Phone URL: $OLD_PHURL"
 
               # Compare and update if different
               if [ "$OLD_PHONE_NAME" != "$NEW_PHONE_NAME" ] || [ "$OLD_PHONE" != "$PHONE" ] || [ "$OLD_NAME" != "$NAME" ] || [ "$OLD_WAURL" != "$WAURL" ] || [ "$OLD_PHURL" != "$PHURL" ]; then
