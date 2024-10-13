@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.27
+name: Update Multiple Clients v.8.28
 
 on:
   push:
@@ -211,19 +211,7 @@ jobs:
                   }
                 }
               }' "$file")
-              OLD_PHURL=$(awk '
-              /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
-                while (getline && !/<\/div>/) {
-                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
-                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
-                    if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
-                    print arr[1]
-                    exit
-                  }
-                }
-              }' "$file")
-
-              # Fallback logic for wa url & phone url
+              # Fallback logic for wa url
               if [ -z "$OLD_WAURL" ]; then
                 OLD_WAURL=$(awk '
                   /https:\/\/((api\.whatsapp\.com|what\.sapp\.my\.id)|(klik|link)\.[^"\/]+)/ {
@@ -234,24 +222,32 @@ jobs:
                   }' "$file")
               fi
 
-              if [ -z "$OLD_PHURL" ]; then
-                OLD_PHURL=$(awk '
-                  /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]+))"/ {
-                    if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
-                    match($0, /href="([^"]+)"/, arr)
-                    print arr[1]
-                    exit
-                  }' "$file")
-              fi
-              # If still empty, try to find tel: links anywhere in the file
-              if [ -z "$OLD_PHURL" ]; then
-                OLD_PHURL=$(awk '
-                  /href="tel:[^"]+"/ {
-                    match($0, /href="(tel:[^"]+)"/, arr)
-                    print arr[1]
-                    exit
-                  }' "$file")
-              fi
+              OLD_PHURL=$(awk '
+              /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
+                while (getline && !/<\/div>/) {
+                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
+                    if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
+                      print arr[1]
+                      exit
+                    }
+                  }
+                }
+              }
+              # Fallback for phone url
+              /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]+))"/ {
+                if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
+                  match($0, /href="([^"]+)"/, arr)
+                  print arr[1]
+                  exit
+                }
+              }
+              # Last resort: find any tel: links
+              /href="tel:[^"]+"/ {
+                match($0, /href="(tel:[^"]+)"/, arr)
+                print arr[1]
+                exit
+              }
+              ' "$file")
 
               if [ -z "$OLD_PHONE_NAME" ] || [ -z "$OLD_WAURL" ] || [ -z "$OLD_PHURL" ]; then
                 echo "Error: Unable to extract one or more of the following from $file:"
