@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.31
+name: Update Multiple Clients v.8.32
 
 on:
   push:
@@ -208,7 +208,7 @@ jobs:
               OLD_WAURL=$(awk '
               /<div[^>]*class="[^"]*(whatsapp-floating|sms-floating)[^"]*"/ {
                 while (getline && !/<\/div>/) {
-                  if (match($0, /href="(https:\/\/[^"]+)"/, arr)) {
+                  if (match($0, /href="(https?:\/\/[^"]+)"/, arr)) {
                     if ($0 ~ /📞/) { next }  # Skip if contains phone emoji
                     print arr[1]
                     exit
@@ -220,7 +220,7 @@ jobs:
                 OLD_WAURL=$(awk '
                   /https:\/\/((api\.whatsapp\.com|what\.sapp\.my\.id)|(klik|link)\.[^"\/]+)/ {
                     if ($0 ~ /📞/) { next }  # Skip if contains phone emoji
-                    match($0, /(https:\/\/[^"]+)/, arr)
+                    match($0, /(https?:\/\/[^"]+)/, arr)
                     print arr[1]
                     exit
                   }' "$file")
@@ -231,7 +231,7 @@ jobs:
               OLD_PHURL=$(awk '
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
-                  if (match($0, /href="([^"]+)"/, arr)) {
+                  if (match($0, /href="(https?:\/\/[^"]+)"/, arr)) {
                     if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
                       print arr[1]
                       exit
@@ -242,7 +242,7 @@ jobs:
               # Fallback for phone url
               /href="((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[^"]*[+]?[^"]+))"/ {
                 if ($0 !~ /💬/) {  # Skip if contains WhatsApp emoji
-                  match($0, /href="([^"]+)"/, arr)
+                  match($0, /(https?:\/\/[^"]+)/, arr)
                   print arr[1]
                   exit
                 }
