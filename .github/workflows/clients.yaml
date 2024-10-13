@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.25
+name: Update Multiple Clients v.8.26
 
 on:
   push:
@@ -214,7 +214,7 @@ jobs:
               OLD_PHURL=$(awk '
               /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
                 while (getline && !/<\/div>/) {
-                  if (match($0, /href="(https:\/\/[^"]+)"/, arr)) {
+                  if (match($0, /href="(https?:\/\/[^"]+|tel:[^"]+)"/, arr)) {
                     if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
                     print arr[1]
                     exit
@@ -234,9 +234,13 @@ jobs:
 
               if [ -z "$OLD_PHURL" ]; then
                 OLD_PHURL=$(awk '
-                  /https:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+)/ {
+                  /((https?:\/\/((con\.tact\.my\.id)|(klik|link)\.[^"\/]+))|(tel:[0-9]+))/ {
                     if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
-                    match($0, /(https:\/\/[^"]+)/, arr)
+                    if ($0 ~ /^tel:/) {
+                      match($0, /(tel:[^"]+)/, arr)
+                    } else {
+                      match($0, /(https:\/\/[^"]+)/, arr)
+                    }
                     print arr[1]
                     exit
                   }' "$file")
