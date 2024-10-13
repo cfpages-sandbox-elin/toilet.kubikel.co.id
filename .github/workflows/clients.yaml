@@ -1,4 +1,4 @@
-name: Update Multiple Clients v.8.35
+name: Update Multiple Clients v.8.36
 
 on:
   push:
@@ -229,12 +229,24 @@ jobs:
 
               # Extracting phone url
               OLD_PHURL=$(awk '
-              /<div[^>]*class="[^"]*tlp-floating[^"]*"/ {
-                while (getline && !/<\/div>/) {
-                  if (match($0, /href="([^"]+)"/, arr)) {
-                    if ($0 ~ /💬/) { next }  # Skip if contains WhatsApp emoji
-                    print arr[1]
-                    exit
+              {
+                if ($0 ~ /<div[^>]*class="[^"]*tlp-floating[^"]*"/) {
+                  content = $0
+                  # Read subsequent lines until we find </div> or EOF
+                  while (1) {
+                    if (match(content, /href="([^"]+)"/, arr)) {
+                      if (content ~ /💬/) { next }  # Skip if contains WhatsApp emoji
+                      print arr[1]
+                      exit
+                    }
+                    # Break if we reach </div>
+                    if ($0 ~ /<\/div>/) { break }
+                    # Read the next line
+                    if (getline) {
+                      content = content "\n" $0
+                    } else {
+                      break  # EOF
+                    }
                   }
                 }
               }' "$file")
