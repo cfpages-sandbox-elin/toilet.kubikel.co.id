@@ -249,12 +249,6 @@ jobs:
               }
               ' "$file")
 
-              if [ -z "$OLD_PHURL" ]; then
-                echo "Error: Unable to extract phone URL from $file"
-                echo "File content:"
-                cat "$file"
-              fi
-
               if [ -z "$OLD_PHONE_NAME" ] || [ -z "$OLD_WAURL" ] || [ -z "$OLD_PHURL" ]; then
                 echo "Error: Unable to extract one or more of the following from $file:"
                 [ -z "$OLD_PHONE_NAME" ] && echo "- Old Phone Name"
