@@ -1,4 +1,4 @@
-name: Redirects WordPress JSON v.1
+name: Redirects WordPress JSON v.1.1
 on: [workflow_dispatch]
 permissions:
   contents: write
@@ -27,8 +27,8 @@ jobs:
           import json
           
           def find_wp_json_dirs():
-              """Find WordPress JSON directories in the workspace"""
-              wp_json_base = '/github/workspace/wp-json/wp/v2/kota/'
+              """Find WordPress JSON directories in the repository"""
+              wp_json_base = './wp-json/wp/v2/kota/'
               try:
                   # Find directories that potentially contain JSON files
                   return [
@@ -58,7 +58,7 @@ jobs:
               """Generate redirect information for a directory"""
               try:
                   # Attempt to fetch JSON data
-                  json_file_path = f'/github/workspace/wp-json/wp/v2/kota/{directory}/index.html'
+                  json_file_path = f'./wp-json/wp/v2/kota/{directory}/index.html'
                   
                   with open(json_file_path, 'r') as f:
                       data = json.load(f)
