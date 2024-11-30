@@ -1,0 +1,118 @@
+name: Redirects WordPress JSON v.1
+on: [workflow_dispatch]
+permissions:
+  contents: write
+jobs:
+  generate_redirects:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      
+      - name: Generate Redirects
+        run: |
+          python << EOF
+          import os
+          import re
+          import requests
+          import json
+          
+          def find_wp_json_dirs():
+              """Find WordPress JSON directories in the workspace"""
+              wp_json_base = '/github/workspace/wp-json/wp/v2/kota/'
+              try:
+                  # Find directories that potentially contain JSON files
+                  return [
+                      d for d in os.listdir(wp_json_base)
+                      if os.path.isdir(os.path.join(wp_json_base, d))
+                  ]
+              except Exception as e:
+                  print(f"Error finding directories: {e}")
+                  return []
+          
+          def extract_domain_from_json(json_path):
+              """Try to extract domain from a JSON file"""
+              try:
+                  with open(json_path, 'r') as f:
+                      data = json.load(f)
+                      # Look for a field containing a full URL
+                      for key, value in data.items():
+                          if isinstance(value, str) and '://' in value:
+                              match = re.search(r'https?://([^/]+)', value)
+                              if match:
+                                  return match.group(1)
+              except Exception as e:
+                  print(f"Error extracting domain: {e}")
+              return None
+          
+          def get_redirect_info(directory, base_url):
+              """Generate redirect information for a directory"""
+              try:
+                  # Attempt to fetch JSON data
+                  json_file_path = f'/github/workspace/wp-json/wp/v2/kota/{directory}/index.html'
+                  
+                  with open(json_file_path, 'r') as f:
+                      data = json.load(f)
+                  
+                  rendered = data.get('link', '')
+                  
+                  # Extract the path without the domain
+                  if rendered:
+                      # Remove the domain part
+                      path = re.sub(r'^https?://[^/]+', '', rendered)
+                      
+                      # Create redirect rule
+                      return f"/wp-json/wp/v2/kota/{directory}/ {path} 301\n"
+                  return None
+              except Exception as e:
+                  print(f"Error processing directory {directory}: {e}")
+                  return None
+          
+          # File to store redirects
+          redirects_file = '_redirects'
+          
+          # Existing redirects to preserve
+          existing_redirects = set()
+          
+          # Read existing redirects if file exists
+          if os.path.exists(redirects_file):
+              with open(redirects_file, 'r') as f:
+                  existing_redirects = set(f.readlines())
+          
+          # Find directories
+          directories = find_wp_json_dirs()
+          
+          # Generate new redirects
+          new_redirects = set()
+          for directory in directories:
+              redirect_info = get_redirect_info(directory, 'toilet-kubikel.test')
+              if redirect_info and redirect_info not in existing_redirects:
+                  new_redirects.add(redirect_info)
+          
+          # Combine existing and new redirects
+          all_redirects = existing_redirects.union(new_redirects)
+          
+          # Write all redirects to file
+          with open(redirects_file, 'w') as f:
+              f.writelines(sorted(all_redirects))
+          
+          print(f"Added {len(new_redirects)} new redirect rules.")
+          print(f"Total redirect rules: {len(all_redirects)}")
+          EOF
+      
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add _redirects
+          git commit -m 'Update redirects with WordPress JSON redirects' || echo "No changes to commit"
+          git push
