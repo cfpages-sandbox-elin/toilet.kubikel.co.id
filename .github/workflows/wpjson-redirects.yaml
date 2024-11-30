@@ -1,4 +1,4 @@
-name: Redirects WordPress JSON v.1.1
+name: Redirects WordPress JSON v.1.2
 on: [workflow_dispatch]
 permissions:
   contents: write
@@ -25,7 +25,13 @@ jobs:
           import re
           import requests
           import json
-          
+
+          # Add these debug lines at the start of the script
+          print("Current working directory:", os.getcwd())
+          print("Repository root contents:", os.listdir('.'))
+          print("Checking wp-json directory:", os.path.exists('./wp-json'))
+          print("Full wp-json/wp/v2/kota path:", os.path.exists('./wp-json/wp/v2/kota/'))
+
           def find_wp_json_dirs():
               """Find WordPress JSON directories in the repository"""
               wp_json_base = './wp-json/wp/v2/kota/'
