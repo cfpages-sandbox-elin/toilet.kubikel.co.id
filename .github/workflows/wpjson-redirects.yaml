@@ -1,4 +1,4 @@
-name: Redirects WordPress JSON v.1.2
+name: Redirects WordPress JSON v.1.3
 on: [workflow_dispatch]
 permissions:
   contents: write
@@ -66,8 +66,25 @@ jobs:
                   # Attempt to fetch JSON data
                   json_file_path = f'./wp-json/wp/v2/kota/{directory}/index.html'
                   
+                  # Read the entire file content
                   with open(json_file_path, 'r') as f:
-                      data = json.load(f)
+                      file_content = f.read()
+                  
+                  # Try to find valid JSON within the content
+                  import re
+                  import json
+                  
+                  # Find JSON-like content using regex
+                  json_match = re.search(r'\{.*\}', file_content, re.DOTALL)
+                  if json_match:
+                      try:
+                          data = json.loads(json_match.group(0))
+                      except json.JSONDecodeError:
+                          print(f"Could not parse JSON for directory {directory}")
+                          return None
+                  else:
+                      print(f"No JSON found in {directory}")
+                      return None
                   
                   rendered = data.get('link', '')
                   
