@@ -1,6 +1,7 @@
-name: Insert .head Content v2.2
+name: Insert .head Content v2.3
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - .head  # Trigger when the .head file is modified
