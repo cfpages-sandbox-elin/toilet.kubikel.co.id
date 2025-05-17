@@ -1,4 +1,4 @@
-name: Insert .head Content v2.1
+name: Insert .head Content v2.2
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - .head  # Trigger when the .head file is modified
 
 permissions:
-  contents: write  # Grant write permissions to the repository contents
+  contents: write
 
 jobs:
   update_html_files:
@@ -30,17 +30,15 @@ jobs:
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
 
-          CONTENT_RAW=$(cat .head | tr -d '\r') # Read .head and remove carriage returns
-          START_COMMENT=""
-          END_COMMENT=""
+          START_COMMENT="" # If you want to use identifiable comments, define them here.
+          END_COMMENT=""   # e.g., "<!-- My Head Content Start -->"
 
-          # Function to escape backslashes for sed 'i' text blocks
+          CONTENT_RAW=$(cat .head | tr -d '\r')
+
           escape_backslashes() {
             echo "$1" | sed 's/\\/\\\\/g'
           }
 
-          # Function to prepare multi-line content for sed 'i' text block
-          # Escapes backslashes and adds a trailing '\' to each line except the last
           prepare_multiline_for_sed() {
             echo "$1" | sed -e 's/\\/\\\\/g' -e '$!s/$/\\/'
           }
@@ -49,42 +47,49 @@ jobs:
           END_COMMENT_TEXT=$(escape_backslashes "$END_COMMENT")
           CONTENT_TEXT=$(prepare_multiline_for_sed "$CONTENT_RAW")
 
-          # Escape comments for use in sed address (regex)
-          START_COMMENT_REGEX=$(echo "$START_COMMENT" | sed -e 's/[][\/.*^$]/\\&/g')
-          END_COMMENT_REGEX=$(echo "$END_COMMENT" | sed -e 's/[][\/.*^$]/\\&/g')
-
-          for file in $(find . -name '*.html'); do
+          find . -name '*.html' -print0 | while IFS= read -r -d $'\0' file; do
             echo "Processing $file..."
-            # Remove existing .head content within the defined comment block, if present
-            sed -i "/${START_COMMENT_REGEX}/,/${END_COMMENT_REGEX}/d" "$file"
             
-            # Insert .head content with comments before </head>
-            # The text block for 'i' command is formed by lines ending with '\', except the final line of the block.
-            if [[ -z "$CONTENT_RAW" ]]; then # If .head file is empty
-              sed -i "/<\/head>/i \\
-                ${START_COMMENT_TEXT}\\
-                ${END_COMMENT_TEXT}" "$file"
-            else # .head file has content
-              sed -i "/<\/head>/i \\
-                ${START_COMMENT_TEXT}\\
-                ${CONTENT_TEXT}\\
-                ${END_COMMENT_TEXT}" "$file"
+            # Only attempt to remove existing block if START_COMMENT and END_COMMENT are non-empty
+            if [[ -n "$START_COMMENT" && -n "$END_COMMENT" ]]; then
+              START_COMMENT_REGEX=$(echo "$START_COMMENT" | sed -e 's/[][\/.*^$]/\\&/g')
+              END_COMMENT_REGEX=$(echo "$END_COMMENT" | sed -e 's/[][\/.*^$]/\\&/g')
+              sed -i "/${START_COMMENT_REGEX}/,/${END_COMMENT_REGEX}/d" "$file"
+            else
+              echo "Skipping removal of existing block as START_COMMENT or END_COMMENT is empty."
+            fi
+            
+            # Insert new content
+            # If START_COMMENT_TEXT or END_COMMENT_TEXT are empty, they will just be empty lines in the sed command,
+            # effectively inserting a blank line if that's the only content on its respective line in the sed 'i' block.
+            # If CONTENT_RAW was empty, CONTENT_TEXT will be an empty string.
+            
+            # We only insert if there's *something* to insert (comments or content)
+            if [[ -n "$START_COMMENT_TEXT" || -n "$CONTENT_TEXT" || -n "$END_COMMENT_TEXT" ]]; then
+              if [[ -z "$CONTENT_RAW" ]]; then # .head was empty, CONTENT_TEXT is empty
+                sed -i "/<\/head>/i \\
+                  ${START_COMMENT_TEXT}\\
+                  ${END_COMMENT_TEXT}" "$file"
+              else # .head had content, CONTENT_TEXT is prepared
+                sed -i "/<\/head>/i \\
+                  ${START_COMMENT_TEXT}\\
+                  ${CONTENT_TEXT}\\
+                  ${END_COMMENT_TEXT}" "$file"
+              fi
+            else
+              echo "Nothing to insert for $file (empty .head and no comments defined)."
             fi
           done
           
-          # Commit and push changes if any
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Check for changes before attempting to commit
           if ! git diff --quiet; then
             echo "Changes detected, committing and pushing..."
             git add .
-            git commit -m "Update .head content in HTML files"
-            
-            # Push changes
+            git commit -m "Update .head content in HTML files (v2.2)" # Added version for clarity
             git remote set-url origin "https://x-access-token:${GH_PAT}@github.com/${GITHUB_REPOSITORY}"
-            git push origin HEAD:${GITHUB_REF_NAME} # Push to the same branch that triggered the workflow
+            git push origin HEAD:${GITHUB_REF_NAME}
           else
             echo "No changes to commit."
           fi
