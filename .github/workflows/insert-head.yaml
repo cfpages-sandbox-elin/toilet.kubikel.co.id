@@ -1,4 +1,4 @@
-name: Insert .head Content v2.0
+name: Insert .head Content v2.1
 
 on:
   push:
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4 # Using a more recent version of checkout
+        uses: actions/checkout@v4
 
       - name: Check if .head file exists
         id: check_head
@@ -26,7 +26,7 @@ jobs:
       - name: Insert or Update .head content in HTML files
         if: env.exists == 'true'
         env:
-          GH_PAT: ${{ secrets.GH_PAT }} # Make PAT available to the script
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
 
@@ -56,20 +56,19 @@ jobs:
           for file in $(find . -name '*.html'); do
             echo "Processing $file..."
             # Remove existing .head content within the defined comment block, if present
-            # Using a different delimiter (#) for sed address to avoid conflict if comments contain /
             sed -i "/${START_COMMENT_REGEX}/,/${END_COMMENT_REGEX}/d" "$file"
             
             # Insert .head content with comments before </head>
             # The text block for 'i' command is formed by lines ending with '\', except the final line of the block.
             if [[ -z "$CONTENT_RAW" ]]; then # If .head file is empty
               sed -i "/<\/head>/i \\
-${START_COMMENT_TEXT}\\
-${END_COMMENT_TEXT}" "$file"
+                ${START_COMMENT_TEXT}\\
+                ${END_COMMENT_TEXT}" "$file"
             else # .head file has content
               sed -i "/<\/head>/i \\
-${START_COMMENT_TEXT}\\
-${CONTENT_TEXT}\\
-${END_COMMENT_TEXT}" "$file"
+                ${START_COMMENT_TEXT}\\
+                ${CONTENT_TEXT}\\
+                ${END_COMMENT_TEXT}" "$file"
             fi
           done
           
