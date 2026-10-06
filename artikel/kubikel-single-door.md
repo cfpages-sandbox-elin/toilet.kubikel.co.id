@@ -69,7 +69,7 @@ sources:
 - **Image ID:** `LOCAL-007`
 - **Source type:** `local`
 - **Placement:** after the opening has answered the main question, before the first detailed H2
-- **Exact Markdown to insert:** `![Ilustrasi cubicle single door](/wp-content/uploads/2023/03/cubicle-single-door.jpg)`
+- **Exact Markdown to insert:** `![Ilustrasi cubicle single door](/wp-content/uploads/2026/10/kubikel-single-door-arsitektur.webp)`
 - **Caption/credit:** Aset lokal proyek; jangan klaim sebagai dokumentasi proyek tertentu.
 - **Selection basis:** filename/source metadata identifies `cubicle single door` as relevant content media; no pixels were inspected.
 - **Hard boundary:** do not infer or describe unseen visual details, project ownership, location, people, brands, condition, performance, or outcome.
