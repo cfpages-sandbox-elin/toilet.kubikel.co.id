@@ -23,7 +23,7 @@ Scope: article media planning only. No prose, HTML hydration, sitemap edit, depl
 | LOCAL-004 | `wp-content/uploads/2023/03/PVC-board.jpg` | `/wp-content/uploads/2023/03/PVC-board.jpg` | PVC board |
 | LOCAL-005 | `wp-content/uploads/2023/03/cubicle-toilet-single-door.jpg` | `/wp-content/uploads/2023/03/cubicle-toilet-single-door.jpg` | cubicle toilet single door |
 | LOCAL-006 | `wp-content/uploads/2026/10/kubikel-premium-arsitektur-v2.webp` | `/wp-content/uploads/2026/10/kubikel-premium-arsitektur-v2.webp` | cubicle premium |
-| LOCAL-007 | `wp-content/uploads/2026/10/kubikel-single-door-arsitektur-v2.webp` | `/wp-content/uploads/2026/10/kubikel-single-door-arsitektur-v2.webp` | cubicle single door |
+| LOCAL-007 | `wp-content/uploads/2026/10/kubikel-single-door-arsitektur-v3.webp` | `/wp-content/uploads/2026/10/kubikel-single-door-arsitektur-v3.webp` | cubicle single door |
 | LOCAL-008 | `wp-content/uploads/2026/10/kubikel-two-tone-arsitektur-v2.webp` | `/wp-content/uploads/2026/10/kubikel-two-tone-arsitektur-v2.webp` | cubicle two tone |
 | LOCAL-009 | `wp-content/uploads/2026/10/kubikel-standar-arsitektur-v2.webp` | `/wp-content/uploads/2026/10/kubikel-standar-arsitektur-v2.webp` | cubicle standar |
 
